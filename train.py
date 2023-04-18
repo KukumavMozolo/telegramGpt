@@ -44,9 +44,9 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
     )
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     tokenizer.pad_token_id = (0)
-    tokenizer.padding_side = "left"  # Allow batched inference
+    tokenizer.padding_side = "left"
 
-    def tokenize(instruction, query, output, add_eos_token=True):
+    def tokenize(instruction, query, output):
         p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + '### Response:\n' + output
         result = tokenizer(
             p,
@@ -55,11 +55,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
             padding=False,
             return_tensors=None,
         )
-        if (
-                result["input_ids"][-1] != 2
-                and len(result["input_ids"]) < cutoff_len
-                and add_eos_token
-        ):
+        if result["input_ids"][-1] != 2:
             result["input_ids"].append(2)
             result["attention_mask"].append(1)
 
