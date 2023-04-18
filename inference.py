@@ -77,6 +77,8 @@ if __name__ == '__main__':
                 checkpoint_name,
                 torch_dtype=torch.float16,
             )
+        else:
+            print(f"No Model found at {model_path}")
     model.config.bos_token_id = 1
     model.config.eos_token_id = 2
 
@@ -109,6 +111,6 @@ if __name__ == '__main__':
                 label="Output",
             )
         ],
-        title="🦙🌲 Telegram-LoRA",
+        title="Telegram-LoRA",
         description="Telegram-LoRA",
     ).queue().launch(server_name="0.0.0.0", share=False)

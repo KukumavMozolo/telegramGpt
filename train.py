@@ -75,6 +75,8 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
             print(f"Restarting from {checkpoint_name}")
             adapters_weights = torch.load(checkpoint_name)
             set_peft_model_state_dict(model, adapters_weights)
+        else:
+            print(f"No checkpoint found at {resume_from_checkpoint}")
 
     model.print_trainable_parameters()
 
