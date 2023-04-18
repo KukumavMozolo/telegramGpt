@@ -82,8 +82,8 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
 
     model.print_trainable_parameters()
 
-    train_path = 'data/train.ds'
-    test_path = 'data/test.ds'
+    train_path = f'data/{data_name}-train.ds'
+    test_path = f'data/{data_name}-test.ds'
 
     if create_dataset:
         print("Creating dataset")
@@ -123,7 +123,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
             save_strategy="steps",
             eval_steps=200,
             save_steps=200,
-            output_dir='logs',
+            output_dir=data_name+'-logs',
             save_total_limit=3,
             load_best_model_at_end=True,
             group_by_length=False,
@@ -142,7 +142,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
     ).__get__(model, type(model))
     model = torch.compile(model)
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
-    model.save_pretrained('model')
+    model.save_pretrained(data_name+'-model')
 
 
 if __name__ == '__main__':
