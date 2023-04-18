@@ -13,7 +13,6 @@ bitsandbytes = "==0.37.2"
 accelerate = "*"
 sentencepiece = "*"
 gradio = "*"
-gr = "*"
 
 [dev-packages]
 
