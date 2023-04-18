@@ -1,6 +1,6 @@
 <!-- Just fill in the brackets -->
 # telegramGpt
-easily train llama on you telegram data 
+Replace your friends with machines, easily train llama on you telegram data 
 
 [![release](https://img.shields.io/badge/release-v0.0-red.svg?style=flat-square)]()
 

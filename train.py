@@ -34,7 +34,7 @@ config = LoraConfig(
 )
 
 def train(model_name: str, data_name: str, resume_from_checkpoint: str,
-          number_of_epochs: float, create_dataset: bool):
+          number_of_epochs: float, create_dataset: bool, fraction_of_test_data: float):
 
     model = LlamaForCausalLM.from_pretrained(
         model_name,
@@ -90,7 +90,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
         data = parse_tele_data.load(data_name)
         dataset = Dataset.from_list(data)
         dataset = dataset.map(tokenize, input_columns=['instruction', 'query', 'output']).shuffle(seed=seed)
-        dataset = dataset.train_test_split(test_size=0.001, seed=seed)
+        dataset = dataset.train_test_split(test_size=fraction_of_test_data, seed=seed)
         train_data = dataset['train']
         test_data = dataset['test']
         train_data.save_to_disk(train_path)
@@ -153,7 +153,8 @@ if __name__ == '__main__':
                         help='name of the folder in data dir that contains the telegram data')
     parser.add_argument('-re', '--resume_from_checkpoint', type=str, required=False, default=None,
                         help='e.g. logs/checkpoint-200')
-    parser.add_argument('-e', '--number_of_epochs', type=float, required=True, default=1.0, help='number of epochs')
+    parser.add_argument('-e', '--number_of_epochs', type=float, default=1.0, help='number of epochs')
+    parser.add_argument('-ft', '--fraction_of_test_data', type=float, required=True, default=0.001, help='fraction of data used for testing')
     parser.add_argument('--create_dataset', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
 
@@ -162,11 +163,13 @@ if __name__ == '__main__':
     resume_from_checkpoint = args.resume_from_checkpoint
     number_of_epochs = args.number_of_epochs
     create_dataset = args.create_dataset
+    fraction_of_test_data = args.fraction_of_test_data
 
     train(
         model_name,
         data_name,
         resume_from_checkpoint,
         number_of_epochs,
-        create_dataset
+        create_dataset,
+        fraction_of_test_data
     )
