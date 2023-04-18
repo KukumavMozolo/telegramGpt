@@ -2,6 +2,8 @@
 # telegramGpt
 Replace your friends with machines, easily train llama on you telegram data 
 
+Based on https://github.com/tloen/alpaca-lora
+
 [![release](https://img.shields.io/badge/release-v0.0-red.svg?style=flat-square)]()
 
 
