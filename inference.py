@@ -90,7 +90,7 @@ if __name__ == '__main__':
             gr.components.Textbox(
                 lines=2,
                 label="Text",
-                placeholder="Tonie: and than disaster strikes!!",
+                placeholder="Copy telegram messages here",
             ),
             gr.components.Slider(
                 minimum=1, maximum=4, step=1, value=4, label="Beams"
