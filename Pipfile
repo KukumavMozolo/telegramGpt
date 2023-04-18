@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+torch = "*"
+transformers =">=4.28.0"
+peft = {editable = true, git = "https://github.com/huggingface/peft.git"}
+datasets = "*"
+lxml = "*"
+bitsandbytes = "==0.37.2"
+accelerate = "*"
+sentencepiece = "*"
+gradio = "*"
+gr = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
+python_full_version = "3.10.6"
