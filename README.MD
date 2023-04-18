@@ -44,5 +44,6 @@ inference
 --------
 start server with
     
-    python --cp logs/your-checkpoint-dir
+    python inference.py --cp logs/your-checkpoint-dir
+
     
