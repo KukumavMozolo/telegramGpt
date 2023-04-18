@@ -23,7 +23,6 @@ lora_r: int = 8
 lora_alpha: int = 16
 lora_dropout: float = 0.05
 lora_target_modules: List[str] = ["q_proj", "v_proj"]
-# resume_from_checkpoint = 'logs/checkpoint-1200/'
 
 config = LoraConfig(
     r=lora_r,

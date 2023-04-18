@@ -1,13 +1,11 @@
 import argparse
 from os.path import join, exists
 
-import gr as gr
 import torch
-from peft import PeftModel, set_peft_model_state_dict, get_peft_model, LoraConfig, get_peft_model_state_dict
+from peft import PeftModel, set_peft_model_state_dict, get_peft_model
 from transformers import LlamaForCausalLM, LlamaTokenizer, GenerationConfig
 
-from parse_tele_data import convolute_messages
-from train import device_map, lora_r, lora_alpha, lora_target_modules, lora_dropout, config
+from train import config
 import gradio as gr
 import re
 
@@ -26,7 +24,7 @@ def get_prompt(text: str):
 def get_response(text, num_beams, max_new_tokens, repetition_penalty, sample):
     generation_config = GenerationConfig(
         num_beams=num_beams,
-        do_sample = sample,
+        do_sample=sample,
         repetition_penalty=repetition_penalty,
     )
     input = get_prompt(text)
@@ -82,7 +80,7 @@ if __name__ == '__main__':
     model.config.bos_token_id = 1
     model.config.eos_token_id = 2
 
-    model.half()  # seems to fix bugs for some users.
+    model.half()
     model.eval()
     model = torch.compile(model)
 
@@ -112,5 +110,5 @@ if __name__ == '__main__':
             )
         ],
         title="🦙🌲 Telegram-LoRA",
-        description="Telegram-LoRA",  # noqa: E501
+        description="Telegram-LoRA",
     ).queue().launch(server_name="0.0.0.0", share=False)
