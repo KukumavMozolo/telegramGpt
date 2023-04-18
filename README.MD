@@ -39,3 +39,10 @@ resume from checkpoint via -re path/to/checkpoint
 number of epochs -e float
 
 --create_dataset to create the dataset at first run or --no-create_dataset to use the old dataset from previous run
+
+inference
+--------
+start server with
+    
+    python --cp logs/your-checkpoint-dir
+    
