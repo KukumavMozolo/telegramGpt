@@ -47,7 +47,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
     tokenizer.padding_side = "left"
 
     def tokenize(instruction, query, output):
-        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + '### Response:\n' + output
+        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + output
         result = tokenizer(
             p,
             truncation=True,
@@ -64,6 +64,16 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
 
         result["labels"] = result["input_ids"].copy()
 
+        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n'
+        tokenized_user_prompt = tokenizer(
+            p,
+            truncation=True,
+            max_length=cutoff_len,
+            padding=False,
+            return_tensors=None,
+        )
+        user_prompt_len = len(tokenized_user_prompt["input_ids"])
+        result["labels"] = [-100] * user_prompt_len + result["labels"][user_prompt_len:]
         return result
 
     model = prepare_model_for_int8_training(model)
@@ -72,7 +82,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
     if resume_from_checkpoint:
         checkpoint_name = join(resume_from_checkpoint, "pytorch_model.bin")
         if exists(checkpoint_name):
-            print(f"Restarting from {checkpoint_name}")
+            print(f"Resuming from {checkpoint_name}")
             adapters_weights = torch.load(checkpoint_name)
             set_peft_model_state_dict(model, adapters_weights)
         else:
@@ -152,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument('-re', '--resume_from_checkpoint', type=str, required=False, default=None,
                         help='e.g. logs/checkpoint-200')
     parser.add_argument('-e', '--number_of_epochs', type=float, default=1.0, help='number of epochs')
-    parser.add_argument('-ft', '--fraction_of_test_data', type=float, required=True, default=0.001, help='fraction of data used for testing')
+    parser.add_argument('-ft', '--fraction_of_test_data', type=float, required=False, default=0.001, help='fraction of data used for testing')
     parser.add_argument('--create_dataset', action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
 
