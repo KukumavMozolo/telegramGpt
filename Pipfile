@@ -13,6 +13,7 @@ bitsandbytes = "==0.37.2"
 accelerate = "*"
 sentencepiece = "*"
 gradio = "*"
+pytelegrambotapi = "*"
 
 [dev-packages]
 
