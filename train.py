@@ -47,7 +47,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
     tokenizer.padding_side = "left"
 
     def tokenize(instruction, query, output):
-        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + output
+        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + '### Response:\n' + output
         result = tokenizer(
             p,
             truncation=True,
@@ -64,7 +64,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
 
         result["labels"] = result["input_ids"].copy()
 
-        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n'
+        p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + '### Response:\n'
         tokenized_user_prompt = tokenizer(
             p,
             truncation=True,

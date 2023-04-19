@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 from lxml import etree
 from os.path import join, isfile
+import numpy as np
 
 from tqdm import tqdm
 
@@ -65,7 +66,7 @@ def load(dir: str):
 
 def convolute_messages(messages: List[Tuple[str, str]], window=12, task=None):
     new_messages = []
-    for idx, (name, text) in tqdm(enumerate(messages),total=len(messages)):
+    for idx, (name, text) in tqdm(enumerate(messages), total=len(messages)):
         entry = {}
         max_idx = min(len(messages), idx + window)
         if task != None:
@@ -75,10 +76,12 @@ def convolute_messages(messages: List[Tuple[str, str]], window=12, task=None):
                 'instruction'] = f"You are in the middle of a conversation between friends in a group chat. Continue the conversation, match the tone and character of the conversation."
         entry['query'] = ""
         entry['output'] = ""
+        text = ""
         for i in range(idx, max_idx):
-            if i <=max_idx//2:
-                entry['query'] += messages[i][0] + ": " + messages[i][1] + "\n"
-            else:
-                entry['output'] += "\n" + messages[i][0] + ": " + messages[i][1]
+            text += messages[i][0] + ": " + messages[i][1] + "\n"
+        text = text[:-1]
+        split_idx = np.random.randint(0, len(text)//2, 1).item()
+        entry['query'] = text[:split_idx]
+        entry['output'] = text[split_idx:]
         new_messages.append(entry)
     return new_messages
