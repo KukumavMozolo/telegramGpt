@@ -14,6 +14,7 @@ accelerate = "*"
 sentencepiece = "*"
 gradio = "*"
 pytelegrambotapi = "*"
+anytree = "*"
 
 [dev-packages]
 

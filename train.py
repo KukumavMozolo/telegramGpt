@@ -34,17 +34,9 @@ config = LoraConfig(
 )
 
 def train(model_name: str, data_name: str, resume_from_checkpoint: str,
-          number_of_epochs: float, create_dataset: bool, fraction_of_test_data: float):
+          number_of_epochs: float, create_dataset: bool, fraction_of_test_data: float, replys_only: bool):
 
-    model = LlamaForCausalLM.from_pretrained(
-        model_name,
-        load_in_8bit=True,
-        torch_dtype=torch.float16,
-        device_map=device_map,
-    )
-    tokenizer = LlamaTokenizer.from_pretrained(model_name)
-    tokenizer.pad_token_id = (0)
-    tokenizer.padding_side = "left"
+
 
     def tokenize(instruction, query, output):
         p = instruction + '\n\n' + "### Instruction:\n" + query + '\n' + '### Response:\n' + output
@@ -76,6 +68,44 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
         result["labels"] = [-100] * user_prompt_len + result["labels"][user_prompt_len:]
         return result
 
+
+    tokenizer = LlamaTokenizer.from_pretrained(model_name)
+    tokenizer.pad_token_id = (0)
+    tokenizer.padding_side = "left"
+
+    train_path = f'data/{data_name}-train.ds'
+    test_path = f'data/{data_name}-test.ds'
+
+    if create_dataset:
+            print("Creating dataset")
+            if replys_only:
+                data = parse_tele_data.get_message_response_data(data_name)
+            else:
+                data = parse_tele_data.get_all_data(data_name)
+            dataset = Dataset.from_list(data)
+            dataset = dataset.map(tokenize, input_columns=['instruction', 'query', 'output']).shuffle(seed=seed)
+            dataset = dataset.train_test_split(test_size=fraction_of_test_data, seed=seed)
+            train_data = dataset['train']
+            test_data = dataset['test']
+            train_data.save_to_disk(train_path)
+            test_data.save_to_disk(test_path)
+    else:
+        print("Using precomputed dataset")
+        train_data = Dataset.load_from_disk(train_path)
+        test_data = Dataset.load_from_disk(test_path)
+
+    print("train data looks like: ")
+    print(train_data[0])
+    print("test data looks like: ")
+    print(test_data[0])
+
+    model = LlamaForCausalLM.from_pretrained(
+        model_name,
+        load_in_8bit=True,
+        torch_dtype=torch.float16,
+        device_map=device_map,
+    )
+
     model = prepare_model_for_int8_training(model)
     model = get_peft_model(model, config)
 
@@ -90,29 +120,6 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
 
     model.print_trainable_parameters()
 
-    train_path = f'data/{data_name}-train.ds'
-    test_path = f'data/{data_name}-test.ds'
-
-    if create_dataset:
-        print("Creating dataset")
-        data = parse_tele_data.load(data_name)
-        dataset = Dataset.from_list(data)
-        dataset = dataset.map(tokenize, input_columns=['instruction', 'query', 'output']).shuffle(seed=seed)
-        dataset = dataset.train_test_split(test_size=fraction_of_test_data, seed=seed)
-        train_data = dataset['train']
-        test_data = dataset['test']
-        train_data.save_to_disk(train_path)
-        test_data.save_to_disk(test_path)
-    else:
-        print("Using precomputed dataset")
-
-    train_data = Dataset.load_from_disk(train_path)
-    test_data = Dataset.load_from_disk(test_path)
-
-    print("train data looks like: ")
-    print(train_data[0])
-    print("test data looks like: ")
-    print(test_data[0])
 
     trainer = transformers.Trainer(
         model=model,
@@ -163,7 +170,8 @@ if __name__ == '__main__':
                         help='e.g. logs/checkpoint-200')
     parser.add_argument('-e', '--number_of_epochs', type=float, default=1.0, help='number of epochs')
     parser.add_argument('-ft', '--fraction_of_test_data', type=float, required=False, default=0.001, help='fraction of data used for testing')
-    parser.add_argument('--create_dataset', action=argparse.BooleanOptionalAction)
+    parser.add_argument('--create_dataset', action=argparse.BooleanOptionalAction, help='use --create_dataset to create a new dataset from the telegram logs, use --no-create_dataset to use the one from the last run')
+    parser.add_argument('--replys_only', action=argparse.BooleanOptionalAction,help='--replys_only to filter out all messages that are not eather a reply or where replied to use --no-replys_only for all data')
     args = parser.parse_args()
 
     model_name = args.model_name
@@ -172,6 +180,7 @@ if __name__ == '__main__':
     number_of_epochs = args.number_of_epochs
     create_dataset = args.create_dataset
     fraction_of_test_data = args.fraction_of_test_data
+    replys_only = args.replys_only
 
     train(
         model_name,
@@ -179,5 +188,6 @@ if __name__ == '__main__':
         resume_from_checkpoint,
         number_of_epochs,
         create_dataset,
-        fraction_of_test_data
+        fraction_of_test_data,
+        replys_only
     )
