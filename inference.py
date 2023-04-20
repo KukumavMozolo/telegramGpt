@@ -21,8 +21,12 @@ def get_prompt(text: str, tokenizer):
     return input_ids
 
 
-def get_response(tokenizer, model, text, num_beams, max_new_tokens, repetition_penalty, sample):
+def get_response(tokenizer, model, text, num_beams, max_new_tokens, repetition_penalty, sample, temperature, top_p,
+                 top_k):
     generation_config = GenerationConfig(
+        temperature=temperature,
+        top_p=top_p,
+        top_k=top_k,
         num_beams=num_beams,
         do_sample=sample,
         repetition_penalty=repetition_penalty,
@@ -39,7 +43,8 @@ def get_response(tokenizer, model, text, num_beams, max_new_tokens, repetition_p
         res = tokenizer.decode(generation_output.sequences[0])
         return res
 
-def get_model(model_name:str, model_path:str):
+
+def get_model(model_name: str, model_path: str):
     model = LlamaForCausalLM.from_pretrained(
         model_name,
         load_in_8bit=False,
@@ -72,6 +77,7 @@ def get_model(model_name:str, model_path:str):
     model = torch.compile(model)
     return model
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model_name', type=str, required=False, default="decapoda-research/llama-7b-hf",
@@ -90,7 +96,7 @@ if __name__ == '__main__':
     model = get_model(model_name, model_path)
 
     gr.Interface(
-        fn=get_response,
+        fn=lambda a, b, c, d, e, f, g, h,: get_response(tokenizer, model, a, b, c, d, e, f, g, h),
         inputs=[
             gr.components.Textbox(
                 lines=2,
@@ -106,7 +112,16 @@ if __name__ == '__main__':
             gr.components.Slider(
                 minimum=1.0, maximum=20.0, step=1.1, value=1.0, label="Repetition penalty"
             ),
-            gr.components.Checkbox(value=False, label="Sample")
+            gr.components.Checkbox(value=False, label="Sample"),
+            gr.components.Slider(
+                minimum=0, maximum=1, value=0.1, label="Temperature"
+            ),
+            gr.components.Slider(
+                minimum=0, maximum=1, value=0.75, label="Top p"
+            ),
+            gr.components.Slider(
+                minimum=0, maximum=100, step=1, value=40, label="Top k"
+            ),
         ],
         outputs=[
             gr.inputs.Textbox(

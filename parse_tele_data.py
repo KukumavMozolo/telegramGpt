@@ -85,3 +85,18 @@ def convolute_messages(messages: List[Tuple[str, str]], window=12, task=None):
         entry['output'] = text[split_idx:]
         new_messages.append(entry)
     return new_messages
+
+def load_only_reply_conversations(dir: str):
+    path = join("data/", dir)
+    files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
+    parsed = []
+    for file in files:
+        with open(file, 'r') as f:
+            try:
+                parsed = parsed + parse_file(f.read())
+            except:
+                print(f"Failes to parse: {file}")
+    filtered = filter(lambda x: 'text' in x and 'name' in x, parsed)
+    filtered = [(message['name'], message['text']) for message in filtered]
+
+    return convolute_messages(filtered)

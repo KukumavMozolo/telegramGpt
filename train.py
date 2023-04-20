@@ -133,7 +133,7 @@ def train(model_name: str, data_name: str, resume_from_checkpoint: str,
             save_steps=200,
             output_dir=data_name+'-logs',
             save_total_limit=3,
-            load_best_model_at_end=True,
+            load_best_model_at_end=False,
             group_by_length=False,
         ),
         data_collator=transformers.DataCollatorForSeq2Seq(
