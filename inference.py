@@ -129,6 +129,6 @@ if __name__ == '__main__':
                 label="Output",
             )
         ],
-        title="Telegram-LoRA",
-        description="Telegram-LoRA",
+        title="Telegram-Gpt",
+        description="Telegram-Gpt",
     ).queue().launch(server_name="0.0.0.0", share=False)

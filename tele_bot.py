@@ -53,14 +53,13 @@ if __name__ == '__main__':
             text = message.json['text'][5:].replace('@'+bot.get_me().username, "",1)
             add_to_history(name, text)
             input = get_from_history(name)
-            response = get_response(tokenizer, model, input, num_beams=4, max_new_tokens=128, repetition_penalty=5.2,
-                                    sample=True, temperature=1.0, top_p=0.75, top_k=40).replace(instruction, "")
+            response = get_response(tokenizer, model, input, num_beams=4, max_new_tokens=128, repetition_penalty=5.4,
+                                    sample=True, temperature=1.0, top_p=1.00, top_k=80).replace(instruction, "")
         else:
             response = "telegramGpt: Brb, https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         print(message.json['text'][6:])
         print(response)
         bot.reply_to(message, response)
-
 
     @bot.message_handler(commands=['clear'])
     def clear(message):

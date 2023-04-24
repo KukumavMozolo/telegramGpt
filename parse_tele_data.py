@@ -29,6 +29,7 @@ def parse_file(html_string):
                         if grandchild.attrib["class"] == "from_name":
                             name = grandchild.text.strip()
                             message["name"] = name
+                            # message['user_id'] =
                         if grandchild.attrib["class"] == "pull_right date details":
                             message["timestamp"] = grandchild.attrib["title"]
                         if grandchild.attrib["class"] == "text":
