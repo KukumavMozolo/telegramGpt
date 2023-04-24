@@ -53,5 +53,5 @@ Telegram Bot
 --------
 start bot with
 
-    python tele_bot.py --cp logs/your-checkpoint-dir -bt your-bot-toke
+    python tele_bot.py --cp logs/your-checkpoint-dir -bt your-bot-token
 
