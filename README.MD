@@ -24,6 +24,7 @@ Features
 
 - memory efficient training using https://github.com/TimDettmers/bitsandbytes
 - Gradio Interface for inference
+- telegram bot
 
 
 Training
@@ -42,10 +43,15 @@ number of epochs -e float
 
 --create_dataset to create the dataset at first run or --no-create_dataset to use the old dataset from previous run
 
-inference
+Inference
 --------
 start server with
     
     python inference.py --cp logs/your-checkpoint-dir
 
-    
+Telegram Bot
+--------
+start bot with
+
+    python tele_bot.py --cp logs/your-checkpoint-dir -bt your-bot-token
+

@@ -12,7 +12,7 @@ import re
 device = 'cuda'
 
 
-def get_prompt(text: str):
+def get_prompt(text: str, tokenizer):
     text = re.sub(',\s\[[0-9]*(.[0-9]*){2}\s[0-9]*:[0-9]*\]\n', ':', text)
     task = "You are in the middle of a conversation between friends in a group chat. Continue the conversation, match the tone and character of the conversation."
     p = task + '\n\n' + "### Instruction:\n" + text + '\n' + '### Response:\n'
@@ -21,13 +21,17 @@ def get_prompt(text: str):
     return input_ids
 
 
-def get_response(text, num_beams, max_new_tokens, repetition_penalty, sample):
+def get_response(tokenizer, model, text, num_beams, max_new_tokens, repetition_penalty, sample, temperature, top_p,
+                 top_k):
     generation_config = GenerationConfig(
+        temperature=temperature,
+        top_p=top_p,
+        top_k=top_k,
         num_beams=num_beams,
         do_sample=sample,
         repetition_penalty=repetition_penalty,
     )
-    input = get_prompt(text)
+    input = get_prompt(text, tokenizer)
     with torch.no_grad():
         generation_output = model.generate(
             input_ids=input,
@@ -40,21 +44,7 @@ def get_response(text, num_beams, max_new_tokens, repetition_penalty, sample):
         return res
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--model_name', type=str, required=False, default="decapoda-research/llama-7b-hf",
-                        help='name of the model')
-    parser.add_argument('-cp', '--checkpoint', type=str, required=False, default=None,
-                        help='e.g. logs/checkpoint-200')
-
-    args = parser.parse_args()
-
-    model_name = args.model_name
-    model_path = args.checkpoint
-
-    tokenizer = LlamaTokenizer.from_pretrained(model_name)
-    tokenizer.pad_token_id = (0)
-
+def get_model(model_name: str, model_path: str):
     model = LlamaForCausalLM.from_pretrained(
         model_name,
         load_in_8bit=False,
@@ -65,7 +55,7 @@ if __name__ == '__main__':
 
     checkpoint_name = join(model_path, "pytorch_model.bin")
     if exists(checkpoint_name):
-        print(f"Restarting from {checkpoint_name}")
+        print(f"Loading weights from {checkpoint_name}")
         adapters_weights = torch.load(checkpoint_name)
         set_peft_model_state_dict(model, adapters_weights)
     if not exists(checkpoint_name):
@@ -85,9 +75,28 @@ if __name__ == '__main__':
     model.half()
     model.eval()
     model = torch.compile(model)
+    return model
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--model_name', type=str, required=False, default="decapoda-research/llama-7b-hf",
+                        help='name of the model')
+    parser.add_argument('-cp', '--checkpoint', type=str, required=False, default=None,
+                        help='e.g. logs/checkpoint-200')
+
+    args = parser.parse_args()
+
+    model_name = args.model_name
+    model_path = args.checkpoint
+
+    tokenizer = LlamaTokenizer.from_pretrained(model_name)
+    tokenizer.pad_token_id = (0)
+
+    model = get_model(model_name, model_path)
 
     gr.Interface(
-        fn=get_response,
+        fn=lambda a, b, c, d, e, f, g, h,: get_response(tokenizer, model, a, b, c, d, e, f, g, h),
         inputs=[
             gr.components.Textbox(
                 lines=2,
@@ -103,7 +112,16 @@ if __name__ == '__main__':
             gr.components.Slider(
                 minimum=1.0, maximum=20.0, step=1.1, value=1.0, label="Repetition penalty"
             ),
-            gr.components.Checkbox(value=False, label="Sample")
+            gr.components.Checkbox(value=False, label="Sample"),
+            gr.components.Slider(
+                minimum=0, maximum=1, value=0.1, label="Temperature"
+            ),
+            gr.components.Slider(
+                minimum=0, maximum=1, value=0.75, label="Top p"
+            ),
+            gr.components.Slider(
+                minimum=0, maximum=100, step=1, value=40, label="Top k"
+            ),
         ],
         outputs=[
             gr.inputs.Textbox(
@@ -111,6 +129,6 @@ if __name__ == '__main__':
                 label="Output",
             )
         ],
-        title="Telegram-LoRA",
-        description="Telegram-LoRA",
+        title="Telegram-Gpt",
+        description="Telegram-Gpt",
     ).queue().launch(server_name="0.0.0.0", share=False)
